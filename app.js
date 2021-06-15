@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs')
 const session = require('express-session')
 const passport = require('passport')
 const usePassport = require('./config/passport')
+const flash = require('connect-flash')
+
 
 const app = express()
 const PORT = 3000
@@ -13,6 +15,7 @@ const db = require('./models')
 const Todo = db.Todo
 const User = db.User
 
+const routes = require('./routes')
 
 app.use(session({
   secret: 'ThisIsMySecret',
@@ -26,17 +29,16 @@ app.use(methodOverride('_method'))
 
 
 usePassport(app)
+app.use(flash())
 
-app.get('/', (req, res) => {
-  return Todo.findAll({
-    raw: true,
-    nest: true
-  })
-    .then((todos) => {
-      console.log(todos)
-      return res.render('index', { todos: todos })
-    })
-    .catch((error) => { return res.status(422).json(error) })
+app.use((req, res, next) => {
+  console.log(req.user)
+  res.locals.isAuthenticated = req.isAuthenticated()
+  res.locals.user = req.user
+  res.locals.success_msg = req.flash('success_msg')
+  res.locals.warning_msg = req.flash('warning_msg')
+  res.locals.error_msg = req.flash('error_msg')
+  next()
 })
 
 app.get('/todos/:id', (req, res) => {
@@ -46,52 +48,8 @@ app.get('/todos/:id', (req, res) => {
     .catch(error => console.log(error))
 })
 
-app.get('/users/login', (req, res) => {
-  res.render('login')
-})
 
-app.post('/users/login', passport.authenticate('local', {
-  successRedirect: '/',
-  failureRedirect: '/users/login'
-}))
-
-app.get('/users/register', (req, res) => {
-  res.render('register')
-})
-
-
-//register, logic part
-app.post('/users/register', (req, res) => {
-
-  const { name, email, password,
-    confirmPassword } = req.body
-  User.findOne({ where: { email } }).then(user => {
-    if (user) {
-      console.log('User already exists')
-      return res.render('register', {
-        name,
-        email,
-        password,
-        confirmPassword
-      })
-    }
-    return bcrypt
-      .genSalt(10)
-      .then(salt => bcrypt.hash(password, salt))
-      .then(hash => User.create({
-        name,
-        email,
-        password: hash
-      }))
-      .then(() => res.redirect('/'))
-      .catch(err => console.log(err))
-  })
-
-})
-
-app.get('/users/logout', (req, res) => {
-  res.send('logout')
-})
+app.use(routes)
 
 
 app.listen(PORT, () => {
