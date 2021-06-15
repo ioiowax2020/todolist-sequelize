@@ -6,7 +6,9 @@ const bcrypt = require('bcryptjs')
 const app = express()
 const PORT = 3000
 
-const routes = require('./routes')
+const db = require('./models')
+const Todo = db.Todo
+const User = db.User
 
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
 app.set('view engine', 'hbs')
@@ -15,7 +17,22 @@ app.use(methodOverride('_method'))
 
 
 app.get('/', (req, res) => {
-  res.send('hello world')
+  return Todo.findAll({
+    raw: true,
+    nest: true
+  })
+    .then((todos) => {
+      console.log(todos)
+      return res.render('index', { todos: todos })
+    })
+    .catch((error) => { return res.status(422).json(error) })
+})
+
+app.get('/todos/:id', (req, res) => {
+  const id = req.params.id
+  return Todo.findByPk(id)
+    .then(todo => res.render('detail', { todo: todo.toJSON() }))
+    .catch(error => console.log(error))
 })
 
 app.get('/users/login', (req, res) => {
@@ -31,7 +48,11 @@ app.get('/users/register', (req, res) => {
 })
 
 app.post('/users/register', (req, res) => {
-  res.send('register')
+
+  const { name, email, password,
+    confirmPassword } = req.body
+  User.create({ name, email, password })
+    .then(user => res.redirect('/'))
 })
 
 app.get('/users/logout', (req, res) => {
