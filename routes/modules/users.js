@@ -4,7 +4,7 @@ const passport = require('passport')
 const bcrypt = require('bcryptjs')
 
 
-const db = require('./models')
+const db = require('../../models')
 const Todo = db.Todo
 const User = db.User
 
@@ -34,7 +34,6 @@ router.post('/users/register', (req, res) => {
         name,
         email,
         password,
-        confirmPassword
       })
     }
     return bcrypt

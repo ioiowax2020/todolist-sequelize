@@ -1,21 +1,20 @@
 const express = require('express')
 const exphbs = require('express-handlebars')
 const methodOverride = require('method-override')
-const bcrypt = require('bcryptjs')
 const session = require('express-session')
-const passport = require('passport')
-const usePassport = require('./config/passport')
 const flash = require('connect-flash')
+
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 
 
 const app = express()
 const PORT = 3000
 
-const db = require('./models')
-const Todo = db.Todo
-const User = db.User
 
 const routes = require('./routes')
+const usePassport = require('./config/passport')
 
 app.use(session({
   secret: 'ThisIsMySecret',
