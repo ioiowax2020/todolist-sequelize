@@ -1,29 +1,31 @@
 const express = require('express')
 const router = express.Router()
+
 const passport = require('passport')
 const bcrypt = require('bcryptjs')
 
-
 const db = require('../../models')
-const Todo = db.Todo
 const User = db.User
 
-router.get('/users/login', (req, res) => {
+
+
+
+router.get('/login', (req, res) => {
   res.render('login')
 })
 
-router.post('/users/login', passport.authenticate('local', {
+router.post('/login', passport.authenticate('local', {
   successRedirect: '/',
   failureRedirect: '/users/login'
 }))
 
-router.get('/users/register', (req, res) => {
+router.get('/register', (req, res) => {
   res.render('register')
 })
 
 
 //register, logic part
-router.post('/users/register', (req, res) => {
+router.post('/register', (req, res) => {
 
   const { name, email, password,
     confirmPassword } = req.body
@@ -50,7 +52,7 @@ router.post('/users/register', (req, res) => {
 
 })
 
-router.get('/users/logout', (req, res) => {
+router.get('/logout', (req, res) => {
   req.logOut()
   req.flash('success_msg', 'You have logged out successfully .')
   res.redirect('/users/login')
