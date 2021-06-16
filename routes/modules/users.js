@@ -27,20 +27,38 @@ router.get('/register', (req, res) => {
 //register, logic part
 router.post('/register', (req, res) => {
 
-  const { name, email, password,
-    confirmPassword } = req.body
+  const { name, email, password, confirmPassword } = req.body
+  const errors = []
+
+  if (!name || !email || !password || !confirmPassword) {
+    errors.push({ message: 'All of fields are required.' })
+  }
+  if (password !== confirmPassword) {
+    errors.push({ message: 'Password does not match！' })
+  }
+  if (errors.length) {
+    return res.render('register', {
+      errors,
+      name,
+      email,
+      password,
+      confirmPassword
+    })
+  }
+
   User.findOne({ where: { email } }).then(user => {
     if (user) {
-      console.log('User already exists')
+      error.push({ message: 'The email has already been registered.' })
       return res.render('register', {
         name,
         email,
         password,
+        confirmPassword
       })
     }
     return bcrypt
       .genSalt(10)
-      .then(salt => bcrypt.hash(password, salt))
+      .then(salt => bcrypt.hashSync(password, salt))
       .then(hash => User.create({
         name,
         email,
